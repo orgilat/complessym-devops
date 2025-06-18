@@ -1,49 +1,18 @@
-name: E2E Tests (Playwright & Cypress)
+name: Run Playwright and Cypress Tests
 
 on:
   push:
-    branches: [main]
+    branches: [ main, master ]
   pull_request:
-    branches: [main]
+    branches: [ main, master ]
 
 jobs:
-  playwright-tests:
-    name: Run Playwright Tests
+  test:
+    timeout-minutes: 90
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-
-      - name: Install Dependencies
-        run: npm ci
-        working-directory: fulltest
-
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
-        working-directory: fulltest
-
-      - name: Run Playwright Tests
-        run: npx playwright test
-        working-directory: fulltest
-
-      - name: Upload Playwright Report
-        uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() }}
-        with:
-          name: playwright-report
-          path: fulltest/playwright-report/
-          retention-days: 14
-
-  cypress-tests:
-    name: Run Cypress Tests with Allure
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -51,23 +20,43 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install Dependencies
+      - name: Install dependencies (Playwright)
+        working-directory: ./fulltest
         run: npm install
-        working-directory: cypress_automation
 
-      - name: Run Cypress Tests
+      - name: Install Playwright Browsers
+        working-directory: ./fulltest
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright tests
+        working-directory: ./fulltest
+        run: npx playwright test
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: fulltest/playwright-report/
+          retention-days: 30
+
+      - name: Install dependencies (Cypress)
+        working-directory: ./cypress_automation
+        run: npm install
+
+      - name: Run Cypress tests
+        working-directory: ./cypress_automation
         run: npx cypress run
-        working-directory: cypress_automation
 
       - name: Generate Allure Report
+        working-directory: ./cypress_automation
         run: |
           npm install -g allure-commandline
           npx allure generate allure-results --clean -o allure-report
-        working-directory: cypress_automation
 
-      - name: Upload Allure Report
+      - name: Upload Allure report
         uses: actions/upload-artifact@v4
         with:
           name: allure-report
-          path: cypress_automation/allure-report/
-          retention-days: 14
+          path: cypress_automation/allure-report
+          retention-days: 30
