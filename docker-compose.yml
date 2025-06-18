@@ -1,0 +1,24 @@
+version: "3.8"
+
+services:
+  cypress-tests:
+    build:
+      context: ./cypress_automation
+      dockerfile: Dockerfile
+    image: assigment-cypress
+    container_name: cypress-tests
+    working_dir: /app
+    command: ["npx", "cypress", "run"]
+    volumes:
+      - ./cypress_automation:/app
+
+  playwright-tests:
+    build:
+      context: ./fulltest
+      dockerfile: Dockerfile
+    image: assigment-playwright
+    container_name: playwright-tests
+    working_dir: /app
+    command: ["npx", "playwright", "test"]
+    volumes:
+      - ./fulltest:/app

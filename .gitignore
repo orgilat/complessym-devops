@@ -1,0 +1,6 @@
+*.tar
+*.zip
+*.log
+node_modules/
+dist/
+coverage/
